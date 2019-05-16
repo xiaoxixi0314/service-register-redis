@@ -19,9 +19,9 @@ public class ServiceProperty {
     private String redisPwd;
 
     /**
-     * service prefix + service version + service name
+     * service prefix + service version + service name + service id
      */
-    private String serviceFullName;
+    private String serviceKey;
 
     /**
      * service bind ip

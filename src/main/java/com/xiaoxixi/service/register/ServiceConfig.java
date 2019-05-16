@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.util.DigestUtils;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * 注册入口文件
@@ -121,7 +124,7 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
                 .redisHost(redisHost)
                 .redisPort(redisPort)
                 .redisPwd(redisPwd)
-                .serviceFullName(buildServiceFullName())
+                .serviceKey(buildServiceKey())
                 .serviceHealthUrl(buildServiceHealthUrl())
                 .serviceTtl(serviceTtl)
                 .version(serviceVersion)
@@ -135,7 +138,7 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
         return "";
     }
 
-    private String buildServiceFullName() {
+    private String buildServiceKey() {
         StringBuilder sb = new StringBuilder();
         if (!servicePrefix.endsWith(":")) {
             servicePrefix = serviceBindIpPrefix + ":";
@@ -144,6 +147,9 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
                 .append(serviceName)
                 .append(":")
                 .append(serviceVersion)
+                .append(":")
+                // service id
+                .append(DigestUtils.md5DigestAsHex(serviceBindIp.getBytes(StandardCharsets.UTF_8)))
                 .toString();
     }
 

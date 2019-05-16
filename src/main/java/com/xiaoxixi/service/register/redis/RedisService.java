@@ -6,9 +6,11 @@ import lombok.Getter;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import redis.clients.jedis.JedisPoolConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class RedisService {
 
@@ -62,10 +64,19 @@ public class RedisService {
         stringRedisTemplate.opsForValue().set(key, value);
     }
 
+    public void set(String key, String value, Integer ttl) {
+        stringRedisTemplate.opsForValue().set(key, value, ttl, TimeUnit.SECONDS);
+    }
+
     public String get(String key) {
         if (StringUtils.isEmpty(key)) {
             return "";
         }
         return stringRedisTemplate.opsForValue().get(key);
     }
+
+    public void expire(String key, Integer ttl) {
+        stringRedisTemplate.expire(key, ttl, TimeUnit.SECONDS);
+    }
+
 }
