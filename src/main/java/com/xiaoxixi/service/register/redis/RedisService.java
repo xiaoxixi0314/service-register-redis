@@ -21,7 +21,7 @@ public class RedisService {
     @Getter
     private StringRedisTemplate stringRedisTemplate;
 
-    public void init(ServiceProperty property) {
+    public void RedisService(ServiceProperty property) {
         jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMaxIdle(8);
         jedisPoolConfig.setMaxTotal(8);
