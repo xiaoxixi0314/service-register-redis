@@ -3,7 +3,7 @@ package com.xiaoxixi.service.register;
 import lombok.*;
 
 /**
- * 服务属性
+ * service property
  */
 @Getter
 @Setter

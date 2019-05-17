@@ -9,10 +9,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * 健康检查线程
- * 当服务完全启动的时候才向redis中注册服务信息
- * 使用url connection 向当前服务发起连接
- * status code 为 >=200 <400时说明服务已启动即可向redis中写入服务信息
+ * health check url
+ * if the service started, register service info to redis
  */
 public class ServiceHealthCheckThread extends Thread {
 
@@ -28,11 +26,10 @@ public class ServiceHealthCheckThread extends Thread {
 
     private int retryCount;
 
-    public ServiceHealthCheckThread(RegisterService service,
-                                    ServiceProperty property){
+    public ServiceHealthCheckThread(RegisterService service){
         this.registerService = service;
-        this.serviceProperty = property;
-        this.healthCheckUrl = property.getServiceHealthUrl();
+        this.serviceProperty = service.getServiceProperty();
+        this.healthCheckUrl = serviceProperty.getServiceHealthUrl();
     }
 
     @Override
@@ -49,7 +46,7 @@ public class ServiceHealthCheckThread extends Thread {
                 int status = connection.getResponseCode();
                 if (status >= 200 && status < 400) {
                     LOGGER.info("server has been started, start register service to redis...");
-                    this.isBreak = registerService.registerServiceToRedis(serviceProperty);
+                    this.isBreak = registerService.registerServiceToRedis();
                     LOGGER.info("register service to redis success");
                 }
                 if (this.retryCount > 100) {
@@ -64,6 +61,5 @@ public class ServiceHealthCheckThread extends Thread {
                 LOGGER.error("service health check unknown error:", e);
             }
         }
-
     }
 }

@@ -1,27 +1,40 @@
 package com.xiaoxixi.service.register;
 
+import com.xiaoxixi.service.register.exception.PropertyException;
+import com.xiaoxixi.service.register.redis.RedisService;
+import com.xiaoxixi.service.register.server.ServerUri;
+import com.xiaoxixi.service.register.thread.ServiceHealthCheckThread;
+import com.xiaoxixi.service.register.util.ServerUriUtils;
 import com.xiaoxixi.service.register.util.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.PropertyAccessException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
 
+import java.awt.color.ProfileDataException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 注册入口文件
+ * register entry class
  */
 @Setter
 @Getter
-public class ServiceConfig implements DisposableBean, InitializingBean, ApplicationListener<ApplicationEvent> {
+public class ServiceConfig implements InitializingBean, DisposableBean{
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfig.class);
 
     /**
-     * 是否启用服务注册
+     * enable service register
+     * false: skip register service
+     * true: register service
      */
     @Value("${register.service.enabled}")
     private Boolean serviceRegisterEnabled;
@@ -33,54 +46,56 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
     private String redisHost;
 
     /**
-     * redis端口，默认6379
+     * redis port，default 6379
      */
     @Value("${register.service.redis.port:6379}")
     private Integer redisPort;
 
     /**
-     * redis password
+     * redis password, default blank
      */
     @Value("${register.service.redis.pwd:}")
     private String redisPwd;
 
     /**
-     * 服务前缀
+     * service prefix, for build redis service key
      */
     @Value("${register.service.prefix}")
     private String servicePrefix;
 
     /**
-     * 服务名，和服务前缀组成redis的key
-     * 服务发现时按照key查找该服务是否存在
+     * service name, for build redis key
      */
     @Value("${register.service.name}")
     private String serviceName;
 
     /**
-     * 服务版本默认v1
+     * service version, default v1
      */
     @Value("${register.service.version:v1}")
     private String serviceVersion;
 
     /**
-     * 服务存活时间，对应redis key的过期时间
+     * service ttl
+     * redis key expire time
+     * unit: second
      */
     @Value("${register.service.ttl:2}")
     private Integer serviceTtl;
 
     /**
-     * 服务绑定ip前缀，
-     * 防止多网卡时能匹配到一个合适的ip
+     * service bind ip
+     * if find multiple server ip,
+     * use this prefix to match ip
      */
     @Value("${register.service.bind.ip.prefix}")
     private String serviceBindIpPrefix;
 
     /**
-     * 服务绑定的ip+端口，默认空白
-     * 不设置该属性的时候，会根据绑定url前缀自动获取tomcat容器的ip和端口
+     * service bind ip and port
+     * if this value was set, bind ip and port use this value first
      */
-    @Value("${register.service.bind.ip:}")
+    @Value("${register.service.bind.ip.port:}")
     private String serviceBindIp;
 
     /**
@@ -90,8 +105,7 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
     private String serviceContextPath;
 
     /**
-     * 服务健康检查后缀，与绑定ip组成健康检查url
-     * 只有当当前服务完全启动时才会注册服务到redis中
+     *  health url suffix, build with service bind ip
      */
     @Value("${register.service.health.uri.suffix}")
     private String serviceHealthUriSuffix;
@@ -102,10 +116,19 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
 
     @Override
     public void afterPropertiesSet(){
+        if (!serviceRegisterEnabled) {
+            LOGGER.warn("service register not enabled, skip to register service.");
+            return;
+        }
         // 初始化服务信息
         initServiceProperty();
-        // 开启健康检查进程
-        // 开启服务守护进程
+        checkServiceProperty();
+        RedisService redisService = new RedisService(serviceProperty);
+        RegisterService service = new RegisterService(serviceProperty);
+        ServiceHealthCheckThread healthCheckThread = new ServiceHealthCheckThread(service);
+        healthCheckThread.setName("health-check-thread");
+        healthCheckThread.setDaemon(true);
+        healthCheckThread.start();
     }
 
     @Override
@@ -114,31 +137,29 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
         // 关闭服务守护进程
     }
 
-    @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-
-    }
-
     private void initServiceProperty(){
+        String serviceBindUrl = buildServerBindUrl();
         serviceProperty = ServiceProperty.builder()
                 .redisHost(redisHost)
                 .redisPort(redisPort)
                 .redisPwd(redisPwd)
-                .serviceKey(buildServiceKey())
-                .serviceHealthUrl(buildServiceHealthUrl())
+                .serviceKey(buildServiceKey(serviceBindUrl))
+                .serviceHealthUrl(buildServiceHealthUrl(serviceBindUrl))
                 .serviceTtl(serviceTtl)
                 .version(serviceVersion)
                 .build();
     }
 
-    private String findServiceBindIp() {
-        if(StringUtils.isEmpty(serviceBindIp)) {
-
+    private void checkServiceProperty(){
+        if (serviceProperty == null) {
+            throw new PropertyException();
         }
-        return "";
+        if (StringUtils.isEmpty(redisHost) || redisPort== null) {
+            throw new PropertyException("can't get redis config");
+        }
     }
 
-    private String buildServiceKey() {
+    private String buildServiceKey(String serviceBindUrl) {
         StringBuilder sb = new StringBuilder();
         if (!servicePrefix.endsWith(":")) {
             servicePrefix = serviceBindIpPrefix + ":";
@@ -149,18 +170,32 @@ public class ServiceConfig implements DisposableBean, InitializingBean, Applicat
                 .append(serviceVersion)
                 .append(":")
                 // service id
-                .append(DigestUtils.md5DigestAsHex(serviceBindIp.getBytes(StandardCharsets.UTF_8)))
+                .append(DigestUtils.md5DigestAsHex(serviceBindUrl.getBytes(StandardCharsets.UTF_8)))
                 .toString();
     }
 
-    private String buildServiceHealthUrl() {
+    private String buildServiceHealthUrl(String serviceBindUrl) {
         StringBuilder sb = new StringBuilder();
-        if (!serviceBindIp.endsWith("/")) {
-            serviceBindIp = serviceBindIp + "/";
-        }
-        return sb.append(serviceBindIp)
+        return sb.append(serviceBindUrl).append("/")
                 .append(serviceHealthUriSuffix)
                 .toString();
+    }
+
+    private String buildServerBindUrl(){
+        ServerUri uri = ServerUriUtils.getServerUri();
+        String scheme = StringUtils.isEmpty(uri.getScheme()) ? "http" : uri.getScheme();
+        String host = StringUtils.isEmpty(uri.getHost()) ? serviceBindIp : uri.getHost();
+        String port = uri.getPort() == null ? "" : uri.getPort().toString();
+        String contextPath = uri.getContextPath();
+        StringBuilder sb = new StringBuilder();
+        sb.append(scheme).append("://").append(host);
+        if (StringUtils.isNotEmpty(port)) {
+            sb.append(":").append(port);
+        }
+        if (StringUtils.isNotEmpty(contextPath)){
+            sb.append("/").append(contextPath);
+        }
+        return sb.toString();
     }
 
 }

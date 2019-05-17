@@ -1,5 +1,6 @@
 package com.xiaoxixi.service.register.redis;
 
+import com.sun.security.ntlm.Server;
 import com.xiaoxixi.service.register.ServiceProperty;
 import com.xiaoxixi.service.register.util.StringUtils;
 import lombok.Getter;
@@ -21,7 +22,13 @@ public class RedisService {
     @Getter
     private StringRedisTemplate stringRedisTemplate;
 
-    public void RedisService(ServiceProperty property) {
+    @Getter
+    private ServiceProperty serviceProperty;
+
+    public RedisService(ServiceProperty property) {
+
+        this.serviceProperty = property;
+
         jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMaxIdle(8);
         jedisPoolConfig.setMaxTotal(8);
@@ -41,7 +48,7 @@ public class RedisService {
     }
 
     /**
-     * 根据key前缀获取redis中的值列表
+     * use key prefix to find values
      * @param keyPrefix
      * @return
      */

@@ -1,6 +1,6 @@
 # use redis register service
 
-##1. Need follow config in property file
+## 1. Need follow config in property file
 ```properties
 # enable register service
 # if it's false, will skip to register service to redis

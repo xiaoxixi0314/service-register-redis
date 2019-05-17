@@ -8,9 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 服务守护线程
- * 负责和redis通讯，保证服务心跳
- * 定时向redis报告服务还存活
+ * service guard thread
+ * report to redis the service is alive
  */
 public class ServiceGuardThread extends Thread{
 
@@ -22,10 +21,9 @@ public class ServiceGuardThread extends Thread{
 
     private volatile boolean isBreak;
 
-    public ServiceGuardThread(RedisService redisService,
-                              ServiceProperty serviceProperty) {
+    public ServiceGuardThread(RedisService redisService) {
         this.redisService = redisService;
-        this.serviceProperty = serviceProperty;
+        this.serviceProperty = redisService.getServiceProperty();
     }
 
     @Override

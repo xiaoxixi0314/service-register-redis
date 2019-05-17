@@ -4,7 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 服务端信息
+ * service container info
+ * contains scheme, port, contextPath and host
  */
 @Getter
 @Setter

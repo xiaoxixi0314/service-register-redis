@@ -8,4 +8,8 @@ public class StringUtils {
         return source == null || source.trim().length() == 0;
     }
 
+    public static boolean isNotEmpty(String source) {
+        return !isEmpty(source);
+    }
+
 }
