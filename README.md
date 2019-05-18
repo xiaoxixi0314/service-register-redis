@@ -1,4 +1,4 @@
-# use redis register service
+# use redis implements service registration and discovery
 
 ## 1. Need follow config in property file
 ```properties
