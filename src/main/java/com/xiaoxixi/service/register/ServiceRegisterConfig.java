@@ -1,5 +1,6 @@
 package com.xiaoxixi.service.register;
 
+import com.xiaoxixi.service.register.constants.Constants;
 import com.xiaoxixi.service.register.exception.PropertyException;
 import com.xiaoxixi.service.register.redis.RedisService;
 import com.xiaoxixi.service.register.server.ServerUri;
@@ -10,16 +11,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.PropertyAccessException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
 
-import java.awt.color.ProfileDataException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -27,9 +24,9 @@ import java.nio.charset.StandardCharsets;
  */
 @Setter
 @Getter
-public class ServiceConfig implements InitializingBean, DisposableBean{
+public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceRegisterConfig.class);
 
     /**
      * enable service register
@@ -105,6 +102,13 @@ public class ServiceConfig implements InitializingBean, DisposableBean{
     private String serviceContextPath;
 
     /**
+     * service discovery weight
+     * default 100
+     */
+    @Value("${register.service.weight:100}")
+    private Integer serviceWeight;
+
+    /**
      *  health url suffix, build with service bind ip
      */
     @Value("${register.service.health.uri.suffix}")
@@ -124,7 +128,7 @@ public class ServiceConfig implements InitializingBean, DisposableBean{
         initServiceProperty();
         checkServiceProperty();
         RedisService redisService = new RedisService(serviceProperty);
-        RegisterService service = new RegisterService(serviceProperty);
+        RegisterService service = new RegisterService(redisService);
         ServiceHealthCheckThread healthCheckThread = new ServiceHealthCheckThread(service);
         healthCheckThread.setName("health-check-thread");
         healthCheckThread.setDaemon(true);
@@ -147,6 +151,7 @@ public class ServiceConfig implements InitializingBean, DisposableBean{
                 .serviceHealthUrl(buildServiceHealthUrl(serviceBindUrl))
                 .serviceTtl(serviceTtl)
                 .version(serviceVersion)
+                .weight(serviceWeight)
                 .build();
     }
 
@@ -161,10 +166,10 @@ public class ServiceConfig implements InitializingBean, DisposableBean{
 
     private String buildServiceKey(String serviceBindUrl) {
         StringBuilder sb = new StringBuilder();
-        if (!servicePrefix.endsWith(":")) {
-            servicePrefix = serviceBindIpPrefix + ":";
-        }
-        return sb.append(servicePrefix)
+        return sb.append(Constants.REDIS_KEY_PREFIX)
+                .append(":")
+                .append(servicePrefix)
+                .append(":")
                 .append(serviceName)
                 .append(":")
                 .append(serviceVersion)

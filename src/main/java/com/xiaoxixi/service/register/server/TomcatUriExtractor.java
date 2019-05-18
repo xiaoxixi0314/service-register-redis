@@ -1,7 +1,5 @@
 package com.xiaoxixi.service.register.server;
 
-import org.springframework.context.ApplicationContext;
-
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.Query;

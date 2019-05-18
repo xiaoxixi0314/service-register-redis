@@ -12,4 +12,13 @@ public class StringUtils {
         return !isEmpty(source);
     }
 
+    public static boolean isAnyEmpty(String... sources) {
+        for (String soucre : sources) {
+            if (isEmpty(soucre)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

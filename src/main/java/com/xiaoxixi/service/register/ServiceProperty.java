@@ -33,6 +33,8 @@ public class ServiceProperty {
      */
     private String serviceHealthUrl;
 
+    private Integer weight;
+
     private String version;
 
     private Integer serviceTtl;

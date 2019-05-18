@@ -1,6 +1,5 @@
 package com.xiaoxixi.service.register.redis;
 
-import com.sun.security.ntlm.Server;
 import com.xiaoxixi.service.register.ServiceProperty;
 import com.xiaoxixi.service.register.util.StringUtils;
 import lombok.Getter;

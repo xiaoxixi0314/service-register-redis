@@ -1,6 +1,7 @@
 package com.xiaoxixi.service.register;
 
 import com.alibaba.fastjson.JSON;
+import com.xiaoxixi.service.register.constants.Constants;
 import com.xiaoxixi.service.register.redis.RedisService;
 import com.xiaoxixi.service.register.thread.ServiceGuardThread;
 import lombok.Getter;
