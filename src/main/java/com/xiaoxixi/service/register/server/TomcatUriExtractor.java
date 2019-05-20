@@ -1,10 +1,15 @@
 package com.xiaoxixi.service.register.server;
 
+import com.xiaoxixi.service.register.exception.PropertyException;
+import com.xiaoxixi.service.register.util.ServerUtils;
+import org.springframework.util.CollectionUtils;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.Query;
 import javax.management.QueryExp;
 import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.Set;
 
 public class TomcatUriExtractor extends AbstractUriExtractor {
@@ -84,6 +89,13 @@ public class TomcatUriExtractor extends AbstractUriExtractor {
                 if (host != null) {
                     break;
                 }
+            }
+            if (host == null) {
+                List<String> ips = ServerUtils.getIpv4Address();
+                if (CollectionUtils.isEmpty(ips) || ips.size() > 1) {
+                    throw new PropertyException("get mutile ip address, please check bind ip prefix");
+                }
+                host = ips.get(0);
             }
             if (host != null) {
                 LOGGER.info("use tomcat  host:{}", host);

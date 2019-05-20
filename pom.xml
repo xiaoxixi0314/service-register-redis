@@ -6,7 +6,7 @@
     <groupId>com.xiaoxixi.sdk</groupId>
     <artifactId>service-register-redis</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>service-register-redis</name>
     <description>Redis Service Register SDK for Java</description>
     <url>http://maven.apache.org</url>
@@ -18,9 +18,9 @@
         <lombok.version>1.16.18</lombok.version>
         <delombok.version>1.16.18.0</delombok.version>
         <slfj.api.version>1.7.5</slfj.api.version>
-        <spring.context.version>3.2.9.RELEASE</spring.context.version>
+        <spring.context.version>5.0.0.RELEASE</spring.context.version>
         <spring.data.redis.version>2.1.8.RELEASE</spring.data.redis.version>
-        <jedis.version>3.0.0</jedis.version>
+        <jedis.version>2.10.2</jedis.version>
         <fastjson.version>1.2.58</fastjson.version>
     </properties>
 
@@ -29,11 +29,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slfj.api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-redis</artifactId>
-            <version>${spring.data.redis.version}</version>
         </dependency>
         <dependency>
             <groupId>redis.clients</groupId>
@@ -56,6 +51,38 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring.context.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- 测试环境使用 log4j2 输出日志 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jcl</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

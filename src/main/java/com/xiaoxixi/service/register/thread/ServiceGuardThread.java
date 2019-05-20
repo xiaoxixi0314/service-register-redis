@@ -43,9 +43,6 @@ public class ServiceGuardThread extends Thread{
                 Thread.sleep(interval);
             } catch (InterruptedException ie) {
                 LOGGER.error("service guard thread interrupted.", ie);
-            } catch (Exception e) {
-                LOGGER.error("service guard thread unknown error", e);
-                this.isBreak = true;
             }
         }
     }

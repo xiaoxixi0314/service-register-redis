@@ -5,6 +5,7 @@ import com.xiaoxixi.service.register.ServiceProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -36,7 +37,7 @@ public class ServiceHealthCheckThread extends Thread {
     public void run(){
         LOGGER.info("start check if the server started...");
         int interval = 2 * 1000;
-        while (!isBreak && interrupted()) {
+        while (!isBreak && !interrupted()) {
             try {
                 this.retryCount ++;
                 LOGGER.info("service register retry count:{}", this.retryCount);
@@ -56,9 +57,8 @@ public class ServiceHealthCheckThread extends Thread {
                 Thread.sleep(interval);
             } catch (InterruptedException ie) {
                 LOGGER.error("service health check thread interrupted!", ie);
-            } catch (Exception e) {
-                this.isBreak = true;
-                LOGGER.error("service health check unknown error:", e);
+            } catch (IOException ioe) {
+                LOGGER.warn("service health check IO error:{}", ioe.getCause());
             }
         }
     }

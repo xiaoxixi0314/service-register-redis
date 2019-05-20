@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -98,7 +97,7 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
     /**
      * service context path
      */
-    @Value("${register.service.context.path}")
+    @Value("${register.service.context.path:}")
     private String serviceContextPath;
 
     /**
@@ -111,12 +110,10 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
     /**
      *  health url suffix, build with service bind ip
      */
-    @Value("${register.service.health.uri.suffix}")
+    @Value("${register.service.health.uri.suffix:}")
     private String serviceHealthUriSuffix;
 
     private ServiceProperty serviceProperty;
-
-    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public void afterPropertiesSet(){
@@ -148,6 +145,7 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
                 .redisPort(redisPort)
                 .redisPwd(redisPwd)
                 .serviceKey(buildServiceKey(serviceBindUrl))
+                .serviceBindUrl(serviceBindUrl)
                 .serviceHealthUrl(buildServiceHealthUrl(serviceBindUrl))
                 .serviceTtl(serviceTtl)
                 .version(serviceVersion)

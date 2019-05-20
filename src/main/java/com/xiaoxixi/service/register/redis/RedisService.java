@@ -1,49 +1,56 @@
 package com.xiaoxixi.service.register.redis;
 
+import com.alibaba.fastjson.JSON;
 import com.xiaoxixi.service.register.ServiceProperty;
+import com.xiaoxixi.service.register.exception.PropertyException;
+import com.xiaoxixi.service.register.exception.ServiceRegisterException;
 import com.xiaoxixi.service.register.util.StringUtils;
 import lombok.Getter;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import redis.clients.jedis.JedisPoolConfig;
-
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import redis.clients.jedis.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class RedisService {
 
-    private JedisPoolConfig jedisPoolConfig;
-
-    private JedisConnectionFactory jedisConnectionFactory;
-
-    @Getter
-    private StringRedisTemplate stringRedisTemplate;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisService.class);
 
     @Getter
     private ServiceProperty serviceProperty;
+
+    @Getter
+    private Jedis jedis;
 
     public RedisService(ServiceProperty property) {
 
         this.serviceProperty = property;
 
-        jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxIdle(8);
-        jedisPoolConfig.setMaxTotal(8);
-        jedisPoolConfig.setMinIdle(0);
-        jedisPoolConfig.setMaxWaitMillis(-1);
+        try {
+            GenericObjectPoolConfig jedisPoolConfig = new GenericObjectPoolConfig();
+            jedisPoolConfig.setMaxIdle(8);
+            jedisPoolConfig.setMaxTotal(8);
+            jedisPoolConfig.setMinIdle(0);
+            jedisPoolConfig.setMaxWaitMillis(-1);
 
-        jedisConnectionFactory.setPoolConfig(jedisPoolConfig);
-        jedisConnectionFactory.setHostName(property.getRedisHost());
-        jedisConnectionFactory.setPort(property.getRedisPort());
-        if (!StringUtils.isEmpty(property.getRedisPwd())) {
-            jedisConnectionFactory.setPassword(property.getRedisPwd());
+            JedisPool pool = new JedisPool(jedisPoolConfig,
+                    property.getRedisHost(),
+                    property.getRedisPort(),
+                    0,
+                    property.getRedisPwd());
+            jedis = pool.getResource();
+            if (Objects.isNull(jedis)) {
+                LOGGER.error("can't connect to redis host:{}", JSON.toJSONString(property));
+                throw new PropertyException("redis connect error");
+            }
+        } catch (Exception e) {
+            LOGGER.error("redis init error:", e);
+            throw new ServiceRegisterException("redis init error:", e);
         }
-        jedisConnectionFactory.setDatabase(0);
 
-        stringRedisTemplate = new StringRedisTemplate();
-        stringRedisTemplate.setConnectionFactory(jedisConnectionFactory);
     }
 
     /**
@@ -59,30 +66,31 @@ public class RedisService {
             keyPrefix = keyPrefix + "*";
         }
         List<String> values = new ArrayList<>();
-        Set<String> keys = stringRedisTemplate.keys(keyPrefix);
+        Set<String> keys = jedis.keys(keyPrefix);
         for (String key: keys) {
-            values.add(stringRedisTemplate.opsForValue().get(key));
+            values.add(jedis.get(key));
         }
         return values;
     }
 
     public void set(String key, String value) {
-        stringRedisTemplate.opsForValue().set(key, value);
+        jedis.set(key, value);
     }
 
     public void set(String key, String value, Integer ttl) {
-        stringRedisTemplate.opsForValue().set(key, value, ttl, TimeUnit.SECONDS);
+        jedis.set(key, value);
+        jedis.expire(key, ttl);
     }
 
     public String get(String key) {
         if (StringUtils.isEmpty(key)) {
             return "";
         }
-        return stringRedisTemplate.opsForValue().get(key);
+        return jedis.get(key);
     }
 
     public void expire(String key, Integer ttl) {
-        stringRedisTemplate.expire(key, ttl, TimeUnit.SECONDS);
+        jedis.expire(key, ttl);
     }
 
 }
