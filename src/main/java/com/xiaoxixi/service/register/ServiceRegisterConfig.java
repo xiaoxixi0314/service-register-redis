@@ -115,6 +115,9 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
 
     private ServiceProperty serviceProperty;
 
+    @Getter
+    private DiscoveryService discoveryService;
+
     @Override
     public void afterPropertiesSet(){
         if (!serviceRegisterEnabled) {
@@ -125,6 +128,7 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
         initServiceProperty();
         checkServiceProperty();
         RedisService redisService = new RedisService(serviceProperty);
+        discoveryService = new DiscoveryService(redisService);
         RegisterService service = new RegisterService(redisService);
         ServiceHealthCheckThread healthCheckThread = new ServiceHealthCheckThread(service);
         healthCheckThread.setName("health-check-thread");

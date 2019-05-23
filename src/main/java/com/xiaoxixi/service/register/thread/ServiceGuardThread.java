@@ -28,19 +28,22 @@ public class ServiceGuardThread extends Thread{
 
     @Override
     public void run(){
+        LOGGER.info("start to guard service....");
         int interval = serviceProperty.getServiceTtl() / 2;
         String serviceKey = serviceProperty.getServiceKey();
         while (!isBreak && !interrupted()) {
             try {
                 if (StringUtils.isEmpty(redisService.get(serviceKey))) {
+                    LOGGER.warn("the service was dead, try to register..");
                     redisService.set(serviceKey,
                             JSON.toJSONString(serviceProperty),
                             serviceProperty.getServiceTtl());
                 } else {
+                    LOGGER.info("refresh service ttl...");
                     redisService.expire(serviceProperty.getServiceKey(),
                             serviceProperty.getServiceTtl());
                 }
-                Thread.sleep(interval);
+                Thread.sleep(interval*1000);
             } catch (InterruptedException ie) {
                 LOGGER.error("service guard thread interrupted.", ie);
             }

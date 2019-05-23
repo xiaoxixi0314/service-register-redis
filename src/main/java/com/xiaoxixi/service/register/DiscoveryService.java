@@ -2,13 +2,10 @@ package com.xiaoxixi.service.register;
 
 import com.alibaba.fastjson.JSON;
 import com.xiaoxixi.service.register.constants.Constants;
-import com.xiaoxixi.service.register.exception.PropertyException;
 import com.xiaoxixi.service.register.exception.ServiceDiscoveryException;
 import com.xiaoxixi.service.register.redis.RedisService;
 import com.xiaoxixi.service.register.util.StringUtils;
-import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.SerializationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
