@@ -113,10 +113,12 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
     @Value("${register.service.health.uri.suffix:}")
     private String serviceHealthUriSuffix;
 
-    private ServiceProperty serviceProperty;
+    private ServiceConfig serviceConfig;
 
     @Getter
     private DiscoveryService discoveryService;
+
+    private ServiceHealthCheckThread healthCheckThread;
 
     @Override
     public void afterPropertiesSet(){
@@ -127,10 +129,10 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
         // 初始化服务信息
         initServiceProperty();
         checkServiceProperty();
-        RedisService redisService = new RedisService(serviceProperty);
+        RedisService redisService = new RedisService(serviceConfig);
         discoveryService = new DiscoveryService(redisService);
         RegisterService service = new RegisterService(redisService);
-        ServiceHealthCheckThread healthCheckThread = new ServiceHealthCheckThread(service);
+        healthCheckThread = new ServiceHealthCheckThread(service);
         healthCheckThread.setName("health-check-thread");
         healthCheckThread.setDaemon(true);
         healthCheckThread.start();
@@ -144,7 +146,7 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
 
     private void initServiceProperty(){
         String serviceBindUrl = buildServerBindUrl();
-        serviceProperty = ServiceProperty.builder()
+        serviceConfig = ServiceConfig.builder()
                 .redisHost(redisHost)
                 .redisPort(redisPort)
                 .redisPwd(redisPwd)
@@ -158,7 +160,7 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
     }
 
     private void checkServiceProperty(){
-        if (serviceProperty == null) {
+        if (serviceConfig == null) {
             throw new PropertyException();
         }
         if (StringUtils.isEmpty(redisHost) || redisPort== null) {

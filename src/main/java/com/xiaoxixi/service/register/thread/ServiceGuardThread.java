@@ -1,7 +1,7 @@
 package com.xiaoxixi.service.register.thread;
 
 import com.alibaba.fastjson.JSON;
-import com.xiaoxixi.service.register.ServiceProperty;
+import com.xiaoxixi.service.register.ServiceConfig;
 import com.xiaoxixi.service.register.redis.RedisService;
 import com.xiaoxixi.service.register.util.StringUtils;
 import org.slf4j.Logger;
@@ -17,31 +17,31 @@ public class ServiceGuardThread extends Thread{
 
     private RedisService redisService;
 
-    private ServiceProperty serviceProperty;
+    private ServiceConfig serviceConfig;
 
     private volatile boolean isBreak;
 
     public ServiceGuardThread(RedisService redisService) {
         this.redisService = redisService;
-        this.serviceProperty = redisService.getServiceProperty();
+        this.serviceConfig = redisService.getServiceConfig();
     }
 
     @Override
     public void run(){
         LOGGER.info("start to guard service....");
-        int interval = serviceProperty.getServiceTtl() / 2;
-        String serviceKey = serviceProperty.getServiceKey();
+        int interval = serviceConfig.getServiceTtl() / 2;
+        String serviceKey = serviceConfig.getServiceKey();
         while (!isBreak && !interrupted()) {
             try {
                 if (StringUtils.isEmpty(redisService.get(serviceKey))) {
                     LOGGER.warn("the service was dead, try to register..");
                     redisService.set(serviceKey,
-                            JSON.toJSONString(serviceProperty),
-                            serviceProperty.getServiceTtl());
+                            JSON.toJSONString(serviceConfig),
+                            serviceConfig.getServiceTtl());
                 } else {
                     LOGGER.info("refresh service ttl...");
-                    redisService.expire(serviceProperty.getServiceKey(),
-                            serviceProperty.getServiceTtl());
+                    redisService.expire(serviceConfig.getServiceKey(),
+                            serviceConfig.getServiceTtl());
                 }
                 Thread.sleep(interval*1000);
             } catch (InterruptedException ie) {

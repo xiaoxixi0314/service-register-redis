@@ -1,7 +1,7 @@
 package com.xiaoxixi.service.register.redis;
 
 import com.alibaba.fastjson.JSON;
-import com.xiaoxixi.service.register.ServiceProperty;
+import com.xiaoxixi.service.register.ServiceConfig;
 import com.xiaoxixi.service.register.exception.PropertyException;
 import com.xiaoxixi.service.register.exception.ServiceRegisterException;
 import com.xiaoxixi.service.register.util.StringUtils;
@@ -20,14 +20,14 @@ public class RedisService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisService.class);
 
     @Getter
-    private ServiceProperty serviceProperty;
+    private ServiceConfig serviceConfig;
 
     @Getter
     private Jedis jedis;
 
-    public RedisService(ServiceProperty property) {
+    public RedisService(ServiceConfig property) {
 
-        this.serviceProperty = property;
+        this.serviceConfig = property;
 
         try {
             GenericObjectPoolConfig jedisPoolConfig = new GenericObjectPoolConfig();

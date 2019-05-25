@@ -7,18 +7,27 @@ import lombok.Getter;
 
 public class RegisterService {
 
+    @Getter
     private RedisService redisService;
 
     @Getter
-    private ServiceProperty serviceProperty;
+    private ServiceConfig serviceConfig;
 
 
     public RegisterService(RedisService redisService) {
         this.redisService = redisService;
-        this.serviceProperty = redisService.getServiceProperty();
+        this.serviceConfig = redisService.getServiceConfig();
     }
 
     public boolean registerServiceToRedis(){
+        ServiceProperty serviceProperty = ServiceProperty.builder()
+                .serviceBindUrl(serviceConfig.getServiceBindUrl())
+                .serviceKey(serviceConfig.getServiceKey())
+                .serviceTtl(serviceConfig.getServiceTtl())
+                .serviceHealthUrl(serviceConfig.getServiceHealthUrl())
+                .weight(serviceConfig.getWeight())
+                .version(serviceConfig.getVersion())
+                .build();
         redisService.set(serviceProperty.getServiceKey(),
                 JSON.toJSONString(serviceProperty),
                 serviceProperty.getServiceTtl());

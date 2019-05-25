@@ -1,7 +1,7 @@
 package com.xiaoxixi.service.register.thread;
 
 import com.xiaoxixi.service.register.RegisterService;
-import com.xiaoxixi.service.register.ServiceProperty;
+import com.xiaoxixi.service.register.ServiceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +19,7 @@ public class ServiceHealthCheckThread extends Thread {
 
     private RegisterService registerService;
 
-    private ServiceProperty serviceProperty;
+    private ServiceConfig serviceConfig;
 
     private String healthCheckUrl;
 
@@ -29,8 +29,8 @@ public class ServiceHealthCheckThread extends Thread {
 
     public ServiceHealthCheckThread(RegisterService service){
         this.registerService = service;
-        this.serviceProperty = service.getServiceProperty();
-        this.healthCheckUrl = serviceProperty.getServiceHealthUrl();
+        this.serviceConfig = service.getServiceConfig();
+        this.healthCheckUrl = serviceConfig.getServiceHealthUrl();
     }
 
     @Override

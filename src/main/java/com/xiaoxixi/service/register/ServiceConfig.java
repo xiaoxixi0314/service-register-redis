@@ -3,14 +3,20 @@ package com.xiaoxixi.service.register;
 import lombok.*;
 
 /**
- * service property
+ * service config
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(builderClassName = "ParamBuilder")
-public class ServiceProperty {
+public class ServiceConfig {
+
+    private String redisHost;
+
+    private Integer redisPort;
+
+    private String redisPwd;
 
     /**
      * service prefix + service version + service name + service id
@@ -32,5 +38,6 @@ public class ServiceProperty {
     private String version;
 
     private Integer serviceTtl;
+
 
 }

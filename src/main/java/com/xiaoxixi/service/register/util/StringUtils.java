@@ -13,8 +13,8 @@ public class StringUtils {
     }
 
     public static boolean isAnyEmpty(String... sources) {
-        for (String soucre : sources) {
-            if (isEmpty(soucre)) {
+        for (String source : sources) {
+            if (isEmpty(source)) {
                 return true;
             }
         }

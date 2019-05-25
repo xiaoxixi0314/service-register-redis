@@ -6,7 +6,6 @@ import com.xiaoxixi.service.register.exception.ServiceDiscoveryException;
 import com.xiaoxixi.service.register.redis.RedisService;
 import com.xiaoxixi.service.register.util.StringUtils;
 import org.springframework.util.CollectionUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -42,7 +41,7 @@ public class DiscoveryService {
     public List<ServiceProperty> discoveryServices(String servicePrefix, String serviceName) {
         String serviceKey;
         if (StringUtils.isAnyEmpty(servicePrefix, serviceName)) {
-            serviceKey = Constants.REDIS_KEY_PREFIX + ":" + redisService.getServiceProperty().getServiceKey();
+            serviceKey = Constants.REDIS_KEY_PREFIX + ":" + redisService.getServiceConfig().getServiceKey();
         } else {
             serviceKey = Constants.REDIS_KEY_PREFIX + ":" +servicePrefix + ":" + serviceName;
         }
@@ -79,7 +78,7 @@ public class DiscoveryService {
             }
             tmp += service.getWeight();
         }
-        throw new ServiceDiscoveryException("");
+        throw new ServiceDiscoveryException();
     }
 
 }
