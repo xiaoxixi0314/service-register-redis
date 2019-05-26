@@ -5,12 +5,16 @@ import com.xiaoxixi.service.register.constants.Constants;
 import com.xiaoxixi.service.register.exception.ServiceDiscoveryException;
 import com.xiaoxixi.service.register.redis.RedisService;
 import com.xiaoxixi.service.register.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class DiscoveryService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryService.class);
 
     private RedisService redisService;
 
@@ -65,8 +69,13 @@ public class DiscoveryService {
      */
     public ServiceProperty discoveryService(String servicePrefix, String serviceName) {
         List<ServiceProperty> services = discoveryServices(servicePrefix, serviceName);
+        if (CollectionUtils.isEmpty(services)) {
+            LOGGER.error("can't find service by service prefix:{},service name:{}", servicePrefix, serviceName);
+            throw new ServiceDiscoveryException("can't find service by service prefix:"+servicePrefix+", service name:"+serviceName);
+        }
         Integer sumWeight = services.stream().mapToInt(service -> service.getWeight()).sum();
         if (sumWeight <= 0) {
+            LOGGER.error("service weight error, service prefix:{}, service name:{}, sum weight:{}", servicePrefix, serviceName, sumWeight);
             throw new ServiceDiscoveryException("service weight error");
         }
         Random random = new Random();
@@ -78,7 +87,7 @@ public class DiscoveryService {
             }
             tmp += service.getWeight();
         }
-        throw new ServiceDiscoveryException();
+        return services.get(0);
     }
 
 }
