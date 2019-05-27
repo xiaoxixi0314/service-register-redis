@@ -82,11 +82,19 @@ public class RedisService {
         jedis.expire(key, ttl);
     }
 
-    public String get(String key) {
+    public String get(final String key) {
         if (StringUtils.isEmpty(key)) {
             return "";
         }
         return jedis.get(key);
+    }
+
+    public Long incr(final String key) {
+        return jedis.incr(key);
+    }
+
+    public Long decr(final String key) {
+        return jedis.decr(key);
     }
 
     public void expire(String key, Integer ttl) {

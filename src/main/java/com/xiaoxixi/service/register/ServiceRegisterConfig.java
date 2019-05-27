@@ -118,6 +118,9 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
     @Getter
     private DiscoveryService discoveryService;
 
+    @Getter
+    private RedisService redisService;
+
     private ServiceHealthCheckThread healthCheckThread;
 
     @Override
@@ -129,7 +132,7 @@ public class ServiceRegisterConfig implements InitializingBean, DisposableBean{
         // 初始化服务信息
         initServiceProperty();
         checkServiceProperty();
-        RedisService redisService = new RedisService(serviceConfig);
+        redisService = new RedisService(serviceConfig);
         discoveryService = new DiscoveryService(redisService);
         RegisterService service = new RegisterService(redisService);
         healthCheckThread = new ServiceHealthCheckThread(service);
