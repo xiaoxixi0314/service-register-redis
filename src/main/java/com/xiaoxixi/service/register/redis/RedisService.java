@@ -82,6 +82,15 @@ public class RedisService {
         jedis.expire(key, ttl);
     }
 
+    public void setnx(String key, String value, Integer expire) {
+        jedis.setnx(key, value);
+        jedis.expire(key, expire);
+    }
+
+    public boolean exists(String key) {
+        return jedis.exists(key);
+    }
+
     public String get(final String key) {
         if (StringUtils.isEmpty(key)) {
             return "";
