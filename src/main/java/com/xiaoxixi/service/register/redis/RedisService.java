@@ -87,6 +87,10 @@ public class RedisService {
         jedis.expire(key, expire);
     }
 
+    public void setnx(String key, String value) {
+        jedis.setnx(key, value);
+    }
+
     public boolean exists(String key) {
         return jedis.exists(key);
     }
