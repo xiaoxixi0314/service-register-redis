@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class DiscoveryService {
@@ -22,9 +23,6 @@ public class DiscoveryService {
         this.redisService = redisService;
     }
 
-    /**
-     * discovery all services
-     */
     public List<ServiceProperty> discoveryAllServices(){
         List<String> servicesJson = redisService.getByKeyPrefix(Constants.REDIS_KEY_PREFIX);
         List<ServiceProperty> services = new ArrayList<>();
@@ -35,7 +33,6 @@ public class DiscoveryService {
             }
         }
         return services;
-
     }
 
     /**
@@ -90,4 +87,17 @@ public class DiscoveryService {
         return services.get(0);
     }
 
+    public Boolean changeServcieWeight(String serviceKey, Integer weight) {
+        String serviceJson = redisService.get(serviceKey);
+        if (StringUtils.isEmpty(serviceJson)) {
+            throw new ServiceDiscoveryException("can't find this service, check service key");
+        }
+        ServiceProperty service = JSON.parseObject(serviceJson, ServiceProperty.class);
+        if (Objects.isNull(service)) {
+            throw new ServiceDiscoveryException("can't find this service, check service key");
+        }
+        service.setWeight(weight);
+        redisService.setnx(serviceKey, JSON.toJSONString(service), service.getServiceTtl());
+        return true;
+    }
 }
