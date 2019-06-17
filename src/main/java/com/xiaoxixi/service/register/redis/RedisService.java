@@ -114,4 +114,11 @@ public class RedisService {
         jedis.expire(key, ttl);
     }
 
+    public void delete(String key) {
+        if (StringUtils.isEmpty(key)) {
+            return;
+        }
+        jedis.del(key);
+    }
+
 }
