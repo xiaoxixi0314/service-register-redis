@@ -39,7 +39,7 @@ public class ServiceGuardThread extends Thread{
                             JSON.toJSONString(serviceConfig),
                             serviceConfig.getServiceTtl());
                 } else {
-                    LOGGER.info("refresh service ttl...");
+                    LOGGER.debug("refresh service ttl...");
                     redisService.expire(serviceConfig.getServiceKey(),
                             serviceConfig.getServiceTtl());
                 }
